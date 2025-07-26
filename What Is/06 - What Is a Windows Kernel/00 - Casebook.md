@@ -1,0 +1,54 @@
+### Kernel Day 1 - Ring 0 and Kernel Fundamentals
+- What is the kernel?
+	- Core Windows component that manages memory, devices, and security
+	- Located in ntoskrnl.exe
+- User mode vs Kernel Mode
+	- Ring 3 = User apps (limited)
+	- Ring 0 = Kernel + Drivers (full power)
+- Detection Implications
+	- Malware that reaches Ring 0 is stealthier and harder to detect
+	- Defender tools (EDR, Sysmon) often hook syscalls to gain visibiity
+- Reflections
+	- Why do EDRs run kernel-mode drivers?
+	- What logs do we lose if malware bypasses syscall layer?
+	- 
+
+----
+### Kernel Day 1 - Thread Scheduling & IRQLs
+- What is a Thread?
+	- Basic unit of execution under a process
+	- Managed by kernels's dispatcher
+- What is an IRQL
+	- CPU priority system for interupts
+	- Higher IRQL cannot be interupted by lower levels
+- Detection-Relevant Concept
+	- Thread priority hijacking = EDR evasion
+	- IRQL misuse = driver/rootkit territory
+	- Scheduler starvation = stealthy malware anti-EDR
+- Real Tools
+	- Process Hacker: View/change thread priorities
+	- WPR: Measure Scheduling behavior
+- Reflections
+	- If malware disables logs without killing processes, did it jus outrun us?
+	- Can I write a rule to catch unusual IRQL usage or high-priority threads
+
+---
+### Kernel Day 3 -- Syscalls and SSDT
+- Syscall Flow
+	- USer > WinAPI > Nt API (ntdll.dll) > syscall > SSDT > Kernel function
+- SSDT = System Service Dispatch Table
+	- Table of syscall > function ptrs in kernel (ntoskrnl.exe)
+- Attacker Techniques
+	- Direct Syscalls (bypass hooks)
+	- Syscall Stomping  (overwrite ntdll)
+	- SSDT Patching (rootkits only)
+- Detection Relevence
+	- ETW and Kernel-Mode drivers are needed to **catch** this
+	- Sysmon is insufficient if attacker never calls high-level API
+- Tools
+	- SysWhispers2
+	- PE-sieve
+	- Process Hacker (inspect ntdll memory)
+- Reflection
+	- What if malware uses direct syscall shellcode and never touches PowerShell or WinAPI?
+	- How do I trace behavior with no logs
